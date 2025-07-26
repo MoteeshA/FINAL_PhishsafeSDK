@@ -36,6 +36,9 @@ class PhishSafeTrackerManager {
   bool _screenRecordingDetected = false;
   BuildContext? _context;
 
+  String? _currentScreen;
+  DateTime? _screenEnterTime;
+
   void setContext(BuildContext context) {
     _context = context;
   }
@@ -49,6 +52,8 @@ class PhishSafeTrackerManager {
     _inputTracker.markLogin();
     _screenRecordingDetected = false;
     _screenDurations.clear();
+    _currentScreen = null;
+    _screenEnterTime = null;
 
     print("✅ PhishSafe session started");
     ApiService.sendSessionStart(DateTime.now());
@@ -79,9 +84,26 @@ class PhishSafeTrackerManager {
     });
   }
 
+  void onScreenVisited(String screen) {
+    final now = DateTime.now();
+
+    if (_currentScreen != null && _screenEnterTime != null) {
+      final duration = now.difference(_screenEnterTime!).inSeconds;
+      _screenDurations[_currentScreen!] = (_screenDurations[_currentScreen!] ?? 0) + duration;
+      print("⏱ Screen duration recorded: $_currentScreen → $duration seconds");
+      ApiService.sendScreenDurations(_screenDurations);
+    }
+
+    _currentScreen = screen;
+    _screenEnterTime = now;
+
+    _navLogger.logVisit(screen);
+    ApiService.sendScreenVisit(screen);
+  }
+
   void recordScreenDuration(String screen, int seconds) {
     _screenDurations[screen] = (_screenDurations[screen] ?? 0) + seconds;
-    print("📺 Screen duration recorded: $screen → $seconds seconds");
+    print("📺 Screen duration recorded manually: $screen → $seconds seconds");
     ApiService.sendScreenDurations(_screenDurations);
   }
 
@@ -111,9 +133,6 @@ class PhishSafeTrackerManager {
       tapZone: tapZone,
     );
 
-    // Example: optionally record tap duration per screen here if you want
-    // (Duration calculation logic can be customized based on your needs)
-    // For demonstration, let's say you record a fixed 100ms per tap for now:
     _tapTracker.recordTapDuration(screenName: screenName, durationMs: 100);
   }
 
@@ -149,11 +168,6 @@ class PhishSafeTrackerManager {
     print("🚀 Swipe recorded → Duration: ${durationMs}ms, Distance: ${distance.toStringAsFixed(1)}px, Speed: ${speed.toStringAsFixed(3)} px/ms");
   }
 
-  void onScreenVisited(String screen) {
-    _navLogger.logVisit(screen);
-    ApiService.sendScreenVisit(screen);
-  }
-
   void recordWithinBankTransferAmount(String amount) {
     _inputTracker.setTransactionAmount(amount);
     print("💰 Within-bank transfer amount tracked: $amount");
@@ -186,6 +200,14 @@ class PhishSafeTrackerManager {
     _sessionTracker.endSession();
     _screenRecordingTimer?.cancel();
     _screenRecordingTimer = null;
+
+    // Final screen duration recording
+    if (_currentScreen != null && _screenEnterTime != null) {
+      final now = DateTime.now();
+      final duration = now.difference(_screenEnterTime!).inSeconds;
+      _screenDurations[_currentScreen!] = (_screenDurations[_currentScreen!] ?? 0) + duration;
+      print("⏱ Final screen duration recorded: $_currentScreen → $duration seconds");
+    }
 
     final Position? location = await _locationTracker.getCurrentLocation();
     final deviceInfo = await _deviceLogger.getDeviceInfo();
