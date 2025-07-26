@@ -32,6 +32,9 @@ to `/example` folder.
 const like = 'sample';
 ```
 
+
+NO MODEL YET - W/O Model
+
 ## Additional information
 
 TODO: Tell users more about the package: where to find more information, how to
