@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phishsafe_sdk/src/phishsafe_tracker_manager.dart';
+import 'dart:math';
 
 class GestureWrapper extends StatefulWidget {
   final Widget child;
@@ -17,6 +18,9 @@ class GestureWrapper extends StatefulWidget {
 
 class _GestureWrapperState extends State<GestureWrapper> {
   Offset? _startPosition;
+  DateTime? _tapStartTime;
+  DateTime? _swipeStartTime;
+
   final GlobalKey _key = GlobalKey();
 
   @override
@@ -26,6 +30,8 @@ class _GestureWrapperState extends State<GestureWrapper> {
       behavior: HitTestBehavior.translucent,
       onPointerDown: (event) {
         _startPosition = event.position;
+        _tapStartTime = DateTime.now();
+        _swipeStartTime = _tapStartTime;
 
         final renderBox = _key.currentContext?.findRenderObject() as RenderBox?;
         if (renderBox != null) {
@@ -42,7 +48,6 @@ class _GestureWrapperState extends State<GestureWrapper> {
 
           print("👆 TAP on ${widget.screenName} at $localPosition zone $tapZone");
         } else {
-          // Fallback only if renderBox is null (rare)
           PhishSafeTrackerManager().recordTapPosition(
             screenName: widget.screenName,
             tapPosition: event.position,
@@ -53,19 +58,45 @@ class _GestureWrapperState extends State<GestureWrapper> {
       },
       onPointerUp: (event) {
         final endPosition = event.position;
-        if (_startPosition != null) {
-          final dy = (endPosition.dy - _startPosition!.dy).abs();
-          final dx = (endPosition.dx - _startPosition!.dx).abs();
+        final now = DateTime.now();
 
-          // Detect swipe only if significant movement
-          if (dy > 20 || dx > 20) {
-            PhishSafeTrackerManager().onSwipeStart(_startPosition!.dy);
-            PhishSafeTrackerManager().onSwipeEnd(endPosition.dy);
-            print("👉 SWIPE from ${_startPosition!.dy} to ${endPosition.dy}");
-          }
-
-          _startPosition = null;
+        // 🔹 Tap Duration
+        if (_tapStartTime != null) {
+          final tapDuration = now.difference(_tapStartTime!).inMilliseconds;
+          PhishSafeTrackerManager().recordTapDuration(
+            screenName: widget.screenName,
+            durationMs: tapDuration,
+          );
+          print("🕒 TAP duration on ${widget.screenName}: ${tapDuration}ms");
         }
+
+        // 🔹 Swipe Duration, Distance, Speed
+        if (_startPosition != null && _swipeStartTime != null) {
+          final swipeDurationMs = now.difference(_swipeStartTime!).inMilliseconds;
+          final dx = endPosition.dx - _startPosition!.dx;
+          final dy = endPosition.dy - _startPosition!.dy;
+          final distance = sqrt(dx * dx + dy * dy);
+
+          // Only consider as swipe if moved > 20px
+          if (distance > 20) {
+            final speed = distance / swipeDurationMs;
+
+            PhishSafeTrackerManager().recordSwipeMetrics(
+              screenName: widget.screenName,
+              durationMs: swipeDurationMs,
+              distance: distance,
+              speed: speed,
+            );
+
+            print("👉 SWIPE from ${_startPosition} to $endPosition");
+            print("🕒 Swipe Duration: ${swipeDurationMs}ms, 📏 Distance: ${distance.toStringAsFixed(2)} px, 🚀 Speed: ${speed.toStringAsFixed(3)} px/ms");
+          }
+        }
+
+        // Reset
+        _startPosition = null;
+        _tapStartTime = null;
+        _swipeStartTime = null;
       },
       child: widget.child,
     );

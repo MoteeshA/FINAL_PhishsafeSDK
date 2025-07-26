@@ -30,4 +30,27 @@ class SwipeTracker {
   List<Map<String, dynamic>> getSwipeEvents() => List.unmodifiable(_swipeEvents);
 
   void reset() => _swipeEvents.clear();
+
+  // ✅ Added method to get last swipe event
+  Map<String, dynamic>? getLastSwipe() {
+    if (_swipeEvents.isEmpty) return null;
+    return _swipeEvents.last;
+  }
+
+  // ✅ Added method to record swipe metrics manually
+  void recordSwipeMetrics({
+    required String screen,
+    required int durationMs,
+    required double distance,
+    required double speed,
+  }) {
+    final now = DateTime.now();
+    _swipeEvents.add({
+      'timestamp': now.toIso8601String(),
+      'screen': screen,
+      'duration_ms': durationMs,
+      'distance_px': distance,
+      'speed_px_per_ms': speed,
+    });
+  }
 }

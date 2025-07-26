@@ -6,6 +6,9 @@ class TapTracker {
 
   final List<Map<String, dynamic>> _tapEvents = [];
 
+  // New: Store tap durations per screen (in milliseconds)
+  final Map<String, int> _tapDurationsPerScreen = {};
+
   /// Records a tap event.
   /// [screenName] - the name of the screen where the tap occurred.
   /// [tapPosition] - the global Offset position of the tap.
@@ -38,13 +41,31 @@ class TapTracker {
     _lastTap = now;
   }
 
-  List<int> getTapDurations() => List.unmodifiable(_tapDurations);
+  /// Records tap duration for a specific screen (in milliseconds).
+  void recordTapDuration({
+    required String screenName,
+    required int durationMs,
+  }) {
+    _tapDurationsPerScreen[screenName] = (_tapDurationsPerScreen[screenName] ?? 0) + durationMs;
+    print("🕒 Tap duration recorded: $durationMs ms on $screenName");
+  }
 
-  List<Map<String, dynamic>> getTapEvents() => List.unmodifiable(_tapEvents);
+  /// Returns a list of tap durations converted to double (in milliseconds).
+  List<double> getTapDurations() =>
+      _tapDurations.map((e) => e.toDouble()).toList(growable: false);
 
+  /// Returns the tap durations per screen (milliseconds).
+  Map<String, int> getTapDurationsPerScreen() => Map.unmodifiable(_tapDurationsPerScreen);
+
+  /// Returns the list of tap events (timestamp, screen, position, zone).
+  List<Map<String, dynamic>> getTapEvents() =>
+      List.unmodifiable(_tapEvents);
+
+  /// Resets the tracker (clears all data).
   void reset() {
     _lastTap = null;
     _tapDurations.clear();
     _tapEvents.clear();
+    _tapDurationsPerScreen.clear();
   }
 }
