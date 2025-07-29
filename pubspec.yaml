@@ -1,5 +1,5 @@
 name: phishsafe_sdk
-description: "A SDK for banking apps."
+description: A SDK for banking apps.
 version: 0.0.1
 homepage:
 
@@ -16,9 +16,15 @@ dependencies:
   device_info_plus: ^9.0.3
   permission_handler: ^11.0.0
   http: ^0.13.6
+  tflite_flutter: ^0.10.4  # ✅ Latest with 'package:' support
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/model_light.tflite  # ✅ TFLite model used by SDK

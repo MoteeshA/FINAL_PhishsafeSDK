@@ -16,6 +16,11 @@ import 'device/device_info_logger.dart';
 import '../storage/export_manager.dart';
 import 'detectors/screen_recording_detector.dart';
 
+// Behavior Management
+import 'behaviour.dart';
+import 'model.dart';
+
+
 class PhishSafeTrackerManager {
   static final PhishSafeTrackerManager _instance = PhishSafeTrackerManager._internal();
   factory PhishSafeTrackerManager() => _instance;
@@ -30,6 +35,7 @@ class PhishSafeTrackerManager {
   final DeviceInfoLogger _deviceLogger = DeviceInfoLogger();
   final ExportManager _exportManager = ExportManager();
   final InputTracker _inputTracker = InputTracker();
+  final BehaviourManager _behaviourManager = BehaviourManager();
 
   final Map<String, int> _screenDurations = {};
   Timer? _screenRecordingTimer;
@@ -41,6 +47,7 @@ class PhishSafeTrackerManager {
 
   void setContext(BuildContext context) {
     _context = context;
+    _behaviourManager.setContext(context);
   }
 
   void startSession() {
@@ -55,6 +62,10 @@ class PhishSafeTrackerManager {
     _currentScreen = null;
     _screenEnterTime = null;
 
+    if (_context != null) {
+      _behaviourManager.startSession(_context!);
+    }
+
     print("✅ PhishSafe session started");
     ApiService.sendSessionStart(DateTime.now());
 
@@ -64,6 +75,7 @@ class PhishSafeTrackerManager {
         _screenRecordingDetected = true;
         print("🚨 Screen recording detected");
         ApiService.sendScreenRecording(true);
+        _behaviourManager.detectBehavior(1); // Screen recording behavior
 
         if (_context != null) {
           showDialog(
@@ -84,6 +96,10 @@ class PhishSafeTrackerManager {
     });
   }
 
+  void setLogoutCallback(VoidCallback callback) {
+    _behaviourManager.setLogoutCallback(callback);
+  }
+
   void onScreenVisited(String screen) {
     final now = DateTime.now();
 
@@ -98,6 +114,7 @@ class PhishSafeTrackerManager {
     _screenEnterTime = now;
 
     _navLogger.logVisit(screen);
+    _behaviourManager.trackScreenVisit(screen);
     ApiService.sendScreenVisit(screen);
   }
 
@@ -134,6 +151,11 @@ class PhishSafeTrackerManager {
     );
 
     _tapTracker.recordTapDuration(screenName: screenName, durationMs: 100);
+
+    // Detect inactive area taps
+    if (tapZone == 'inactive') {
+      _behaviourManager.trackInactiveAreaTap();
+    }
   }
 
   void recordTapDuration({
@@ -141,6 +163,13 @@ class PhishSafeTrackerManager {
     required int durationMs,
   }) {
     _tapTracker.recordTapDuration(screenName: screenName, durationMs: durationMs);
+
+    // Detect abnormal tap durations
+    if (durationMs < 100) {
+      _behaviourManager.detectBehavior(6, durationMs); // Very fast tapping
+    } else if (durationMs > 2000) {
+      _behaviourManager.detectBehavior(7, durationMs); // Very slow tapping
+    }
   }
 
   void onSwipeStart(double pos) => _swipeTracker.startSwipe(pos);
@@ -150,6 +179,11 @@ class PhishSafeTrackerManager {
     final swipe = _swipeTracker.getLastSwipe();
     if (swipe != null) {
       ApiService.sendSwipe(swipe);
+
+      // Detect abnormal swipe speeds
+      if (swipe['speed'] > 5.0) {
+        _behaviourManager.detectBehavior(8, swipe['speed']);
+      }
     }
   }
 
@@ -166,23 +200,35 @@ class PhishSafeTrackerManager {
       speed: speed,
     );
     print("🚀 Swipe recorded → Duration: ${durationMs}ms, Distance: ${distance.toStringAsFixed(1)}px, Speed: ${speed.toStringAsFixed(3)} px/ms");
+
+    if (speed > 5.0) {
+      _behaviourManager.detectBehavior(8, speed); // Very fast swipe
+    }
   }
 
   void recordWithinBankTransferAmount(String amount) {
     _inputTracker.setTransactionAmount(amount);
     print("💰 Within-bank transfer amount tracked: $amount");
     ApiService.sendTransactionAmount(amount);
+
+    // Trigger behavior check for large transactions
+    final parsedAmount = double.tryParse(amount.replaceAll(',', ''));
+    if (parsedAmount != null && parsedAmount >= 50000) {
+      _behaviourManager.trackLargeTransaction(parsedAmount);
+    }
   }
 
   void recordFDBroken() {
     _inputTracker.markFDBroken();
     print("🧨 FD broken marked");
+    _behaviourManager.trackFDBroken();
     ApiService.sendFDBroken();
   }
 
   void recordLoanTaken() {
     _inputTracker.markLoanTaken();
     print("📋 Loan application recorded");
+    _behaviourManager.trackLoanViewed();
     ApiService.sendLoanTaken();
   }
 
@@ -196,10 +242,21 @@ class PhishSafeTrackerManager {
     print("✅ Transaction ended");
   }
 
+  void trackOtpSkip() {
+    _behaviourManager.trackOtpSkip();
+    print("⏭ OTP skip tracked");
+  }
+
+  void trackFailedPinAttempt() {
+    _behaviourManager.detectBehavior(21); // Failed PIN attempt
+    print("❌ Failed PIN attempt tracked");
+  }
+
   Future<void> endSessionAndExport() async {
     _sessionTracker.endSession();
     _screenRecordingTimer?.cancel();
     _screenRecordingTimer = null;
+    _behaviourManager.endSession();
 
     // Final screen duration recording
     if (_currentScreen != null && _screenEnterTime != null) {
@@ -273,6 +330,7 @@ class PhishSafeTrackerManager {
         'start': _sessionTracker.startTimestamp,
         'end': _sessionTracker.endTimestamp,
         'duration_seconds': sessionDuration,
+        'penalties_applied': _behaviourManager.getAppliedPenalties(),
       },
       'device': deviceInfo,
       'location': location != null
@@ -293,7 +351,23 @@ class PhishSafeTrackerManager {
         'time_from_login_to_transaction': _inputTracker.timeFromLoginToTransactionStart?.inSeconds,
         'time_for_transaction': _inputTracker.timeToCompleteTransaction?.inSeconds,
       },
+      'behavior_analysis': _behaviourManager.getBehaviorLogs(),
     };
+
+    // 🧠 Calculate final trust score
+    final sessionFiles = await BaselineBuilder().getSessionFiles();
+    final sessionCount = sessionFiles.length;
+    final double mlModelScore = await TrustModel().predict(sessionData);
+    final double finalTrustScore = _behaviourManager.calculateFinalTrustScore(
+      sessionCount: sessionCount,
+      mlModelScore: mlModelScore,
+      currentSession: sessionData,
+    );
+
+    print("🎯 Final Trust Score: ${finalTrustScore.toStringAsFixed(2)}");
+    sessionData['session'] ??= {};  // Step 2A: ensure 'session' is a non-null map
+    (sessionData['session'] as Map)['trust_score'] = finalTrustScore.toStringAsFixed(2);  // Step 2B: safely assign trust score
+
 
     if (location != null) {
       ApiService.sendLocation({
