@@ -181,7 +181,8 @@ class PhishSafeTrackerManager {
       ApiService.sendSwipe(swipe);
 
       // Detect abnormal swipe speeds
-      if (swipe['speed'] > 5.0) {
+      final speed = swipe['speed'];
+      if (speed != null && speed > 5.0) {
         _behaviourManager.detectBehavior(8, swipe['speed']);
       }
     }
