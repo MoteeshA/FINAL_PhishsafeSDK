@@ -336,30 +336,38 @@ class BehaviourManager {
   }
 
   double _computeUserProfileScore(Map<String, dynamic> baseline, Map<String, dynamic> session) {
+    // Safely extract and convert all numeric values to double
+    final tapDuration = (baseline['avg_tap_ms'] ?? 0).toDouble();
+    final swipeSpeed = (baseline['avg_swipe_speed'] ?? 0).toDouble();
+    final tapSamples = (baseline['tap_samples'] ?? 0).toDouble();
+    final swipeSamples = (baseline['swipe_samples'] ?? 0).toDouble();
+
     final taps = session['tap_durations_ms'] ?? [];
     final swipes = session['swipe_events'] ?? [];
 
     double avgTap = taps is List && taps.isNotEmpty
-        ? taps.map((e) => e as num).reduce((a, b) => a + b) / taps.length
-        : baseline['avg_tap_ms'] ?? 1000;
+        ? taps.map((e) => (e as num).toDouble()).reduce((a, b) => a + b) / taps.length
+        : tapDuration;
 
     double avgSwipe = swipes is List && swipes.isNotEmpty
-        ? swipes.map((e) => e['speed_px_per_ms'] ?? 0.0).reduce((a, b) => a + b) / swipes.length
-        : baseline['avg_swipe_speed'] ?? 1.0;
+        ? swipes.map((e) => (e['speed_px_per_ms'] ?? 0.0).toDouble()).reduce((a, b) => a + b) / swipes.length
+        : swipeSpeed;
 
-    double tapScore = 100 -
-        ((avgTap - (baseline['avg_tap_ms'] ?? 1000)).abs() /
-            (baseline['avg_tap_ms'] ?? 1000) *
-            100)
-            .clamp(0, 100);
+    // Calculate deviation scores
+    double tapDeviation = (avgTap - tapDuration).abs();
+    double swipeDeviation = (avgSwipe - swipeSpeed).abs();
 
-    double swipeScore = 100 -
-        ((avgSwipe - (baseline['avg_swipe_speed'] ?? 1.0)).abs() /
-            (baseline['avg_swipe_speed'] ?? 1.0) *
-            100)
-            .clamp(0, 100);
+    // Calculate percentage scores (100% - deviation percentage)
+    double tapScore = 100 - ((tapDeviation / (tapDuration == 0 ? 1 : tapDuration)) * 100).clamp(0, 100);
+    double swipeScore = 100 - ((swipeDeviation / (swipeSpeed == 0 ? 1 : swipeSpeed)) * 100).clamp(0, 100);
 
-    return ((tapScore + swipeScore) / 2).clamp(0, 100);
+    // Weighted average based on sample sizes
+    double totalSamples = tapSamples + swipeSamples;
+    if (totalSamples > 0) {
+      return ((tapScore * tapSamples) + (swipeScore * swipeSamples)) / totalSamples;
+    } else {
+      return (tapScore + swipeScore) / 2;
+    }
   }
 
   // ======================
@@ -428,7 +436,7 @@ class BehaviourManager {
     }
 
     if (_userBaseline != null && _userBaseline!.containsKey('avg_tap_ms')) {
-      double avg = _userBaseline!['avg_tap_ms'];
+      double avg = (_userBaseline!['avg_tap_ms'] ?? 0).toDouble();
       if (durationMs < avg * 0.5) detectBehavior(6, durationMs);
       else if (durationMs > avg * 2.0) detectBehavior(7, durationMs);
     } else {
@@ -439,7 +447,7 @@ class BehaviourManager {
 
   void recordSwipe({required double speed}) {
     if (_userBaseline != null && _userBaseline!.containsKey('avg_swipe_speed')) {
-      double avg = _userBaseline!['avg_swipe_speed'];
+      double avg = (_userBaseline!['avg_swipe_speed'] ?? 0).toDouble();
       if (speed < avg * 0.5) detectBehavior(14);
       else if (speed > avg * 2.0) detectBehavior(15);
     }
