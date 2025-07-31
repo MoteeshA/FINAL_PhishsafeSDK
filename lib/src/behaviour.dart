@@ -52,43 +52,43 @@ class BehaviourManager {
 
   // Behavior → Penalty Mapping
   static const Map<int, int> _behaviourPenalties = {
-    1: -15,  // Immediate transaction after login
-    2: -15,  // FD broken
-    3: -15,  // Loan application after login
-    4: -10,  // Very short session
-    5: -15,  // Multiple high-risk actions
-    6: -6,   // Very fast tap
-    7: -6,   // Very slow tap
-    8: -10,  // Excessive scrolling
-    9: -6,   // Repeated screen revisits
-    10: -6,  // OTP skip
-    11: -6,  // Rapid screen transitions
-    12: -6,  // Unusual navigation pattern
-    13: -6,  // Abnormal session timing
-    14: -5,  // Very slow swipe
-    15: -4,  // Very fast swipe
-    16: -4,  // Unusual swipe direction
-    17: -6,  // Multiple failed biometrics
-    18: -4,  // Unusual device tilt
-    19: -6,  // Rapid tap bursts
-    20: -4,  // Unusual screen orientation changes
-    21: -10, // Multiple failed PIN attempts
-    22: -4,  // Tapping in inactive areas
-    23: -6,  // Multiple loans viewed without applying
-    24: -5,  // Unusual time of activity
-    25: -5,  // Unusual location
-    26: -4,  // Unusual network
-    27: -4,  // Unusual device info
-    28: -4,  // Unusual typing speed
-    29: -4,  // Copy-paste in sensitive fields
-    30: -4,  // Unusual error rate
-    33: -15, // Sudden transfer after inactivity
-    34: -15, // FD created and quickly withdrawn
-    42: -10, // Multiple account switches
-    43: -15, // OTP bypass attempt
-    44: -15, // Multiple failed authentications
-    45: -20, // Screen recording detected
-    50: -15, // Large transaction
+    1: -15,
+    2: -15,
+    3: -15,
+    4: -10,
+    5: -15,
+    6: -6,
+    7: -6,
+    8: -10,
+    9: -6,
+    10: -6,
+    11: -6,
+    12: -6,
+    13: -6,
+    14: -5,
+    15: -4,
+    16: -4,
+    17: -6,
+    18: -4,
+    19: -6,
+    20: -4,
+    21: -10,
+    22: -4,
+    23: -6,
+    24: -5,
+    25: -5,
+    26: -4,
+    27: -4,
+    28: -4,
+    29: -4,
+    30: -4,
+    33: -15,
+    34: -15,
+    42: -10,
+    43: -15,
+    44: -15,
+    45: -20,
+    50: -15,
   };
 
   // Singleton pattern
@@ -118,7 +118,7 @@ class BehaviourManager {
     _sessionStartTime = DateTime.now();
     _resetCounters();
     _authResetCount = 0;
-    print("🔄 Behavior monitoring session started");
+    print(" Behavior monitoring session started");
     _checkForBaselineCreation();
   }
 
@@ -129,7 +129,7 @@ class BehaviourManager {
     _highRiskActionResetTimer?.cancel();
     _tapSpeedTimer?.cancel();
     _accountSwitchResetTimer?.cancel();
-    print("🛑 Behavior monitoring session ended");
+    print(" Behavior monitoring session ended");
   }
 
   // ======================
@@ -138,51 +138,51 @@ class BehaviourManager {
 
   void trackFDBroken() {
     detectBehavior(2);
-    print("🧨 FD broken behavior tracked");
+    print(" FD broken behavior tracked");
   }
 
   void trackOtpSkip() {
     _otpSkipCount++;
     if (_otpSkipCount >= _otpSkipThreshold) detectBehavior(10);
-    print("⏭ OTP skip tracked (count: $_otpSkipCount)");
+    print(" OTP skip tracked (count: $_otpSkipCount)");
   }
 
   void trackLoanViewed() {
     _loansViewedCount++;
     if (_loansViewedCount >= _multipleLoansThreshold) detectBehavior(23);
-    print("🏦 Loan viewed tracked (count: $_loansViewedCount)");
+    print(" Loan viewed tracked (count: $_loansViewedCount)");
   }
 
   void trackInactiveAreaTap() {
     _inactiveAreaTapCount++;
     if (_inactiveAreaTapCount >= _inactiveAreaThreshold) detectBehavior(22);
-    print("👆 Inactive area tap tracked (count: $_inactiveAreaTapCount)");
+    print(" Inactive area tap tracked (count: $_inactiveAreaTapCount)");
   }
 
   void trackScreenVisit(String screenName) {
     _screenVisitCounts.update(screenName, (count) => count + 1, ifAbsent: () => 1);
-    print("🖥️ Screen visit tracked: $screenName (count: ${_screenVisitCounts[screenName]})");
+    print(" Screen visit tracked: $screenName (count: ${_screenVisitCounts[screenName]})");
     if (_screenVisitCounts[screenName]! >= _screenRevisitThreshold) detectBehavior(9);
   }
 
   void trackImmediateTransaction() {
     detectBehavior(1);
-    print("💸 Immediate transaction after login detected");
+    print(" Immediate transaction after login detected");
   }
 
   void trackLoanApplication() {
     detectBehavior(3);
-    print("📝 Loan application after login detected");
+    print(" Loan application after login detected");
   }
 
   void trackInactiveToActiveTransfer() {
     detectBehavior(33);
-    print("🔄 Sudden transfer after inactivity detected");
+    print(" Sudden transfer after inactivity detected");
   }
 
   void trackQuickFDWithdrawal() {
     detectBehavior(34);
-    print("🏧 FD created and quickly withdrawn detected");
+    print(" FD created and quickly withdrawn detected");
   }
 
   void trackAccountSwitching() {
@@ -192,38 +192,38 @@ class BehaviourManager {
       _accountSwitchCount = 0;
     });
 
-    print("🔄 Account switch tracked (count: $_accountSwitchCount)");
+    print(" Account switch tracked (count: $_accountSwitchCount)");
     if (_accountSwitchCount >= _rapidAccountSwitchThreshold) {
       detectBehavior(42);
-      print("🔄 Multiple account switches detected");
+      print(" Multiple account switches detected");
     }
   }
 
   void trackOtpBypassAttempt() {
     detectBehavior(43);
-    print("⛔ OTP bypass attempt detected");
+    print(" OTP bypass attempt detected");
   }
 
   void trackFailedAuthentication() {
     _failedAuthCount++;
-    print("🔐 Failed authentication tracked (count: $_failedAuthCount)");
+    print(" Failed authentication tracked (count: $_failedAuthCount)");
     if (_failedAuthCount >= _failedAuthThreshold) {
       detectBehavior(44);
-      print("🔐 Multiple failed authentications detected");
+      print(" Multiple failed authentications detected");
     }
   }
 
   void trackLargeTransaction(double amount) {
-    print("💰 Large transaction amount tracked: ₹$amount");
+    print(" Large transaction amount tracked: ₹$amount");
     if (amount >= 50000) {
       detectBehavior(50, amount);
-      print("💰 Large transaction detected: ₹$amount");
+      print(" Large transaction detected: ₹$amount");
     }
   }
 
   void trackScreenRecordingDetected() {
     detectBehavior(45);
-    print("📹 Screen recording detected");
+    print(" Screen recording detected");
   }
 
   // ======================
@@ -232,7 +232,7 @@ class BehaviourManager {
 
   void detectBehavior(int behaviorId, [dynamic extraData]) {
     if (!_behaviourPenalties.containsKey(behaviorId)) {
-      print("⚠️ Unknown behavior ID: $behaviorId");
+      print(" Unknown behavior ID: $behaviorId");
       return;
     }
 
@@ -247,25 +247,25 @@ class BehaviourManager {
     applyBehaviour(behaviorId);
 
     switch (behaviorId) {
-      case 1: print("💸 Transaction immediately after login detected"); break;
-      case 2: print("💸 Fixed deposit broken behavior detected"); break;
-      case 3: print("📝 Loan application right after login detected"); break;
+      case 1: print(" Transaction immediately after login detected"); break;
+      case 2: print(" Fixed deposit broken behavior detected"); break;
+      case 3: print(" Loan application right after login detected"); break;
       case 4: _handleVeryShortSession(); break;
       case 5: _handleHighRiskActions(); break;
       case 6: case 7: _handleTapSpeed(behaviorId, extraData as int?); break;
       case 8: _handleExcessiveScrolling(); break;
-      case 9: print("🔄 Repeated screen revisits detected"); break;
-      case 10: print("⏭ OTP skip detected"); break;
+      case 9: print(" Repeated screen revisits detected"); break;
+      case 10: print(" OTP skip detected"); break;
       case 21: _handleFailedPinAttempts(); break;
-      case 22: print("👆 Tapping in inactive areas detected"); break;
-      case 23: print("🏦 Multiple loans viewed without applying"); break;
-      case 33: print("🔄 Sudden transfer after inactivity detected"); break;
-      case 34: print("🏧 FD created and quickly withdrawn detected"); break;
-      case 42: print("🔄 Multiple account switches detected"); break;
-      case 43: print("⛔ OTP bypass attempt detected"); break;
-      case 44: print("🔐 Multiple failed authentications detected"); break;
-      case 45: print("📹 Screen recording detected"); break;
-      case 50: print("💰 Large transaction detected: ₹${extraData ?? 'unknown amount'}"); break;
+      case 22: print(" Tapping in inactive areas detected"); break;
+      case 23: print(" Multiple loans viewed without applying"); break;
+      case 33: print(" Sudden transfer after inactivity detected"); break;
+      case 34: print(" FD created and quickly withdrawn detected"); break;
+      case 42: print(" Multiple account switches detected"); break;
+      case 43: print(" OTP bypass attempt detected"); break;
+      case 44: print(" Multiple failed authentications detected"); break;
+      case 45: print(" Screen recording detected"); break;
+      case 50: print(" Large transaction detected: ₹${extraData ?? 'unknown amount'}"); break;
     }
   }
 
@@ -300,7 +300,7 @@ class BehaviourManager {
     _trustScore += penalty;
     _trustScore = _trustScore.clamp(0, 100);
     _appliedPenalties.add(behaviourId);
-    print("⚠️ Behavior $behaviourId detected → Penalty $penalty → Trust: $_trustScore");
+    print(" Behavior $behaviourId detected → Penalty $penalty → Trust: $_trustScore");
     _checkAndShowPopup();
   }
 
@@ -310,7 +310,7 @@ class BehaviourManager {
 
   double calculateFinalTrustScore({
     required int sessionCount,
-    required double mlModelScore, // between 0.0 to 1.0
+    required double mlModelScore,
     required Map<String, dynamic> currentSession,
   }) {
     // Step 1: Behavioral score from penalties
@@ -324,13 +324,13 @@ class BehaviourManager {
 
     // Step 3: Check if baseline is ready
     if (_userBaseline == null || sessionCount < 5) {
-      print("⏳ No baseline yet. Using: 70% Behavior + 30% ML");
+      print(" No baseline yet. Using: 70% Behavior + 30% ML");
       return (behavioralScore * 0.7) + (mlScore * 0.3);
     }
 
     // Step 4: Baseline ready → include profile
     double profileScore = _computeUserProfileScore(_userBaseline!, currentSession);
-    print("✅ Baseline ready. Using: 60% Profile + 30% ML + 10% Behavior");
+    print(" Baseline ready. Using: 60% Profile + 30% ML + 10% Behavior");
 
     return (profileScore * 0.6) + (mlScore * 0.3) + (behavioralScore * 0.1);
   }
@@ -381,7 +381,7 @@ class BehaviourManager {
         await _checkForBaselineCreation();
       }
     } catch (e) {
-      print("❌ Error initializing baseline: $e");
+      print(" Error initializing baseline: $e");
     }
   }
 
@@ -391,12 +391,12 @@ class BehaviourManager {
       if (await file.exists()) {
         final contents = await file.readAsString();
         _userBaseline = jsonDecode(contents);
-        print("✅ Loaded user baseline: $_userBaseline");
+        print(" Loaded user baseline: $_userBaseline");
       } else {
-        print("⏳ No baseline file found at ${file.path}");
+        print(" No baseline file found at ${file.path}");
       }
     } catch (e) {
-      print("⚠️ Error loading baseline: $e");
+      print(" Error loading baseline: $e");
     }
   }
 
@@ -404,24 +404,24 @@ class BehaviourManager {
     try {
       final baselineBuilder = BaselineBuilder();
       final sessionFiles = await baselineBuilder.getSessionFiles();
-      print("📂 Found ${sessionFiles.length} session logs");
+      print(" Found ${sessionFiles.length} session logs");
 
       // Check if baseline file exists
       final isBuilt = await baselineBuilder.isBaselineBuilt();
 
       // If not built or number of logs is a multiple of 5, rebuild
       if (!isBuilt || sessionFiles.length % 5 == 0) {
-        print("🔁 Rebuilding baseline from latest 5 sessions...");
+        print(" Rebuilding baseline from latest 5 sessions...");
         final baseline = await baselineBuilder.buildBaselineFromFirst5();
         await baselineBuilder.saveBaseline(baseline);
         _userBaseline = baseline;
-        print("✅ Baseline auto-updated from latest sessions");
+        print(" Baseline auto-updated from latest sessions");
       } else {
-        print("📂 Baseline already exists and not due for update");
+        print(" Baseline already exists and not due for update");
         await _loadUserBaseline(); // Just reload existing
       }
     } catch (e) {
-      print("❌ Error during baseline check/update: $e");
+      print(" Error during baseline check/update: $e");
     }
   }
 
@@ -459,12 +459,12 @@ class BehaviourManager {
 
   void _checkAndShowPopup() {
     if (_context == null) {
-      print("⚠️ Cannot show popup - no context available");
+      print(" Cannot show popup - no context available");
       return;
     }
 
     if (_authResetCount >= _maxAuthResets) {
-      print("❌ Max authentication resets reached");
+      print(" Max authentication resets reached");
       return;
     }
 
@@ -472,7 +472,7 @@ class BehaviourManager {
       case 'logout': _showLogoutDialog(); break;
       case 'otp': _showOtpDialog(); break;
       case 'auth_question': _showQuestionDialog(); break;
-      case 'safe': print("✅ Trust score is safe: $_trustScore"); return;
+      case 'safe': print(" Trust score is safe: $_trustScore"); return;
     }
   }
 
@@ -490,7 +490,7 @@ class BehaviourManager {
       context: _context!,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text('⚠️ Logged Out'),
+        title: const Text(' Logged Out'),
         content: const Text('You are logged out due to suspicious activity.'),
         actions: [
           TextButton(
@@ -520,10 +520,10 @@ class BehaviourManager {
               (Route<dynamic> route) => false,
         );
       } catch (e) {
-        print("❌ Logout navigation failed: $e");
+        print(" Logout navigation failed: $e");
       }
     }
-    print("🔐 User logged out due to suspicious activity");
+    print(" User logged out due to suspicious activity");
   }
 
   void _showOtpDialog() {
@@ -535,7 +535,7 @@ class BehaviourManager {
       context: _context!,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text('🔐 OTP Required'),
+        title: const Text(' OTP Required'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -559,7 +559,7 @@ class BehaviourManager {
                 );
               } else {
                 Navigator.pop(_context!);
-                print("❌ Incorrect OTP");
+                print(" Incorrect OTP");
                 applyBehaviour(10);
               }
             },
@@ -579,7 +579,7 @@ class BehaviourManager {
       context: _context!,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text('🧠 Authentication Question'),
+        title: const Text(' Authentication Question'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -602,7 +602,7 @@ class BehaviourManager {
                 );
               } else {
                 Navigator.pop(_context!);
-                print("❌ Incorrect answer");
+                print(" Incorrect answer");
                 applyBehaviour(44);
               }
             },
@@ -617,7 +617,7 @@ class BehaviourManager {
     if (_sessionStartTime == null) return;
     final sessionDuration = DateTime.now().difference(_sessionStartTime!).inSeconds;
     if (sessionDuration < _veryShortSessionThreshold) {
-      print("⏱ Very short session detected: $sessionDuration seconds");
+      print(" Very short session detected: $sessionDuration seconds");
     }
   }
 
@@ -629,16 +629,16 @@ class BehaviourManager {
     });
 
     if (_highRiskActionCount >= _highRiskActionThreshold) {
-      print("🚨 Multiple high-risk actions detected: $_highRiskActionCount");
+      print(" Multiple high-risk actions detected: $_highRiskActionCount");
     }
   }
 
   void _handleTapSpeed(int behaviorId, int? tapDurationMs) {
     if (tapDurationMs == null) return;
     if (behaviorId == 6 && tapDurationMs < _veryFastTapThreshold) {
-      print("⚡ Very fast tap detected: $tapDurationMs ms");
+      print(" Very fast tap detected: $tapDurationMs ms");
     } else if (behaviorId == 7 && tapDurationMs > _verySlowTapThreshold) {
-      print("🐢 Very slow tap detected: $tapDurationMs ms");
+      print(" Very slow tap detected: $tapDurationMs ms");
     }
   }
 
@@ -650,14 +650,14 @@ class BehaviourManager {
     });
 
     if (_scrollCount >= _excessiveScrollThreshold) {
-      print("🔄 Excessive scrolling detected: $_scrollCount scrolls");
+      print(" Excessive scrolling detected: $_scrollCount scrolls");
     }
   }
 
   void _handleFailedPinAttempts() {
     _failedPinCount++;
     if (_failedPinCount >= _failedPinThreshold) {
-      print("🔒 Multiple failed PIN attempts: $_failedPinCount");
+      print(" Multiple failed PIN attempts: $_failedPinCount");
     }
   }
 
@@ -678,14 +678,14 @@ class BehaviourManager {
   void restoreTrust() {
     _trustScore = 100;
     _resetCounters();
-    print("✅ Trust score restored to 100.");
+    print(" Trust score restored to 100.");
   }
 
   // Debugging helper
   void printTrustScoreDebug() {
-    print("🧪 Trust Score: $_trustScore");
-    print("🧪 Penalties Applied: $_appliedPenalties");
-    print("🧪 Recent Behaviors: ${_behaviorLogs.take(5).toList()}");
+    print(" Trust Score: $_trustScore");
+    print(" Penalties Applied: $_appliedPenalties");
+    print(" Recent Behaviors: ${_behaviorLogs.take(5).toList()}");
   }
 }
 
@@ -698,7 +698,7 @@ class BaselineBuilder {
       final file = File('$sessionFolder/$profileFile');
       return await file.exists();
     } catch (e) {
-      print("⚠️ Error checking baseline existence: $e");
+      print(" Error checking baseline existence: $e");
       return false;
     }
   }
@@ -707,7 +707,7 @@ class BaselineBuilder {
     try {
       final dir = Directory(sessionFolder);
       if (!(await dir.exists())) {
-        print("📁 Creating PhishSafe directory as it doesn't exist");
+        print(" Creating PhishSafe directory as it doesn't exist");
         await dir.create(recursive: true);
         return [];
       }
@@ -718,10 +718,10 @@ class BaselineBuilder {
           .toList();
 
       files.sort((a, b) => a.path.compareTo(b.path));
-      print("📂 Found ${files.length} session logs");
+      print(" Found ${files.length} session logs");
       return files;
     } catch (e) {
-      print("❌ Error getting session files: $e");
+      print(" Error getting session files: $e");
       return [];
     }
   }
@@ -731,15 +731,15 @@ class BaselineBuilder {
       final files = await getSessionFiles();
       final sessions = <Map<String, dynamic>>[];
 
-      print("🔨 Processing ${files.length >= 5 ? 5 : files.length} sessions...");
+      print(" Processing ${files.length >= 5 ? 5 : files.length} sessions...");
 
       for (var i = 0; i < (files.length >= 5 ? 5 : files.length); i++) {
         try {
           final content = await files[i].readAsString();
           sessions.add(jsonDecode(content));
-          print("📄 Processed session ${i+1}/${files.length >= 5 ? 5 : files.length}");
+          print(" Processed session ${i+1}/${files.length >= 5 ? 5 : files.length}");
         } catch (e) {
-          print("⚠️ Error reading session file ${files[i].path}: $e");
+          print(" Error reading session file ${files[i].path}: $e");
         }
       }
 
@@ -802,14 +802,14 @@ class BaselineBuilder {
         'swipe_samples': swipeCount,
       };
 
-      print("📊 Baseline stats:");
+      print(" Baseline stats:");
       print("- Avg tap: ${baseline['avg_tap_ms']}ms (from $tapCount samples)");
       print("- Avg swipe: ${baseline['avg_swipe_speed']} (from $swipeCount samples)");
       print("- Created from ${baseline['sessions_used']} sessions");
 
       return baseline;
     } catch (e) {
-      print("❌ Error building baseline: $e");
+      print(" Error building baseline: $e");
       return {};
     }
   }
@@ -818,17 +818,17 @@ class BaselineBuilder {
     try {
       final dir = Directory(sessionFolder);
       if (!(await dir.exists())) {
-        print("📁 Creating directory $sessionFolder");
+        print(" Creating directory $sessionFolder");
         await dir.create(recursive: true);
       }
 
       final file = File('$sessionFolder/$profileFile');
       final jsonData = const JsonEncoder.withIndent('  ').convert(data);
       await file.writeAsString(jsonData);
-      print("✅ Saved user baseline to: ${file.path}");
-      print("📄 File size: ${jsonData.length} bytes");
+      print(" Saved user baseline to: ${file.path}");
+      print(" File size: ${jsonData.length} bytes");
     } catch (e) {
-      print("❌ Error saving baseline: $e");
+      print(" Error saving baseline: $e");
       rethrow;
     }
   }

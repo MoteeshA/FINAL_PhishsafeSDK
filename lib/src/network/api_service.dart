@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 class ApiService {
-  static const baseUrl = 'http://192.168.1.11:5018'; // Update with your backend IP
+  static const baseUrl = 'http://172.20.10.3:5018/'; // Update with your backend IP
 
   static Future<void> _post(String endpoint, Map<String, dynamic> body) async {
     final fullUrl = '$baseUrl$endpoint';

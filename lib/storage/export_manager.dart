@@ -73,7 +73,8 @@ class ExportManager {
 
   /// Upload the session log to the internet-accessible Flask server via ngrok
   Future<void> uploadToServer(Map<String, dynamic> logData) async {
-    final url = Uri.parse("https://phishsafe-web.onrender.com/upload"); // ✅ Use your ngrok HTTPS URL here
+    final url = Uri.parse(""
+        "http://172.20.10.3:5020/upload"); // ✅ Use your ngrok HTTPS URL here
 
     try {
       final response = await http.post(
